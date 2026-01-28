@@ -8,15 +8,15 @@ export async function GET(
   const prisma = new PrismaClient()
 
   try {
-    // Get id from params
-    const { id } = await params
-
     // TEST MODE support (from PDF requirements)
     const testMode = process.env.TEST_MODE === '1'
     const testNowHeader = request.headers.get('x-test-now-ms')
     const now = testMode && testNowHeader
       ? new Date(parseInt(testNowHeader))
       : new Date()
+
+    // Get id from params
+    const { id } = await params
 
     console.log('📅 Current time for expiry check:', now.toISOString())
     console.log('🔧 Test mode:', testMode, 'Test header:', testNowHeader)
@@ -96,10 +96,12 @@ export async function GET(
 
   } catch (error: any) {
     console.error('🔥 Get paste error:', error)
+    // Use process.env.TEST_MODE directly here
+    const isTestMode = process.env.TEST_MODE === '1'
     return NextResponse.json(
       {
         error: 'Internal server error',
-        details: testMode ? error.message : undefined
+        details: isTestMode ? error.message : undefined
       },
       { status: 500 }
     )
